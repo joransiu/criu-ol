@@ -142,8 +142,10 @@ create_checkpoint() {
 			exit 1;
 		fi
 		echo "Pid to be checkpointed: ${pid}"
+		# Extract the node ID for the Liberty process for external sockets
+		nodeid=`lsof +E -aUc java | grep "^java" | grep INO | sed -n 's/.* 0t0 \([0-9]*\) .*/\1/p'`
 		date +"%s.%3N" > cpstart.out
-		cmd="./criu-ns dump -t ${pid} --tcp-established --images-dir=${SNAPSHOT_DIR} -j -v4 -o ${SNAPSHOT_DIR}/dump.log"
+		cmd="./criu-ns dump -t ${pid} --ext-unix-sk --external unix[${nodeid}] --tcp-established --images-dir=${SNAPSHOT_DIR} -j -v4 -o ${SNAPSHOT_DIR}/dump.log"
 		echo "CMD: ${cmd}"
 		${cmd}
 		date +"%s.%3N" > cpend.out
